@@ -1,0 +1,6 @@
+*~
+__pycache__/
+*.pvd
+*.vtu
+results/
+fd_results/
