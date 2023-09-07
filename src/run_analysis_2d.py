@@ -34,6 +34,7 @@ parser.add_argument('-bcs', type=str, default='PPFF', help='Type of bcs on the 4
 # How are we solving the system
 parser.add_argument('-ksp_type', type=str, default='minres')
 parser.add_argument('-pc_type', type=str, default='rieszk', help='Which preconditioner')
+#
 # IO
 parser.add_argument('-error_cvrg', type=int, default=1, help='Look at error convergence')
 parser.add_argument('-save', type=int, default=0, choices=(0, 1), help='Save graphics')    

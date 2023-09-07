@@ -43,15 +43,31 @@ def form_riesz_map_rieszk(A, W, Wbcs, bcs, K, nullspace):
     a_prec0 = (1/K)*inner(u, v)*dx + (1/K)*inner(div(u), div(v))*dx
     L_prec0 = inner(Constant((0, )*len(u)), v)*dx
     B0, _ = assemble_system(a_prec0, L_prec0, Wbcs[0])
+    B0 = LU(B0)
     
     p, q = df.TrialFunction(Q), df.TestFunction(Q)
-    B1 = df.assemble(K*df.inner(p, q)*df.dx)
+    # B1 = df.assemble(K*df.inner(p, q)*df.dx)
+    # # Add
+    # if not isinstance(A[1][1], (int, float)):
+    #     B1 = xii.ii_convert(B1 - A[1][1])
+    p, q = df.TrialFunction(Q), df.TestFunction(Q)
+    
+    B1_M = df.assemble(K*df.inner(p, q)*df.dx)
+
+    boundaries, tag = Wbcs[0][0].domain_args
+    Qbc_tags = set((1, 2, 3, 4)) - set((Vbc.domain_args[1] for Vbc in Wbcs[0]))
+    print('>>>', Qbc_tags, '<<<')
+    Qbcs = [df.DirichletBC(Q, df.Constant(0), boundaries, tag) for tag in Qbc_tags]
+    B1_A, _ = df.assemble_system(df.inner(df.grad(p), df.grad(q))*df.dx,
+                                 df.inner(df.Constant(0), q)*df.dx,
+                                 Qbcs)
     # Add
     if not isinstance(A[1][1], (int, float)):
-        B1 = xii.ii_convert(B1 - A[1][1])
-
+        B1_M = xii.ii_convert(B1_M - A[1][1])
+    B1 = LU(B1_M) + LU(B1_A) if inv == 'lu' else AMG(B1_M) + AMG(B1_A)
+        
     if len(W) == 2:
-        return xii.block_diag_mat([LU(B0), LU(B1)])
+        return xii.block_diag_mat([B0, B1])
 
     # ---
     R = W[-1]
